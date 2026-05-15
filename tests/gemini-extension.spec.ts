@@ -13,17 +13,13 @@ import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
 import { PromptCase, TEST_PROMPTS } from './test-prompts';
+import { EXTENSION_FOLDER, USER_DATA_DIR, CHROME_EXE, SENTINEL_EMAIL, SENTINEL_PASSWORD } from './env';
 
 // ---------------------------------------------------------------------------
-// Config
+// Config (from .env)
 // ---------------------------------------------------------------------------
 
-const EXTENSION_PATH = path.resolve(__dirname, '../sentinel-extension-chrome-v0.5.52');
-// Separate profile from the ChatGPT spec (Chrome cannot share a profile between two instances).
-// global-setup.ts seeds this from .playwright-user-data before the workers start,
-// so it already contains cached Sentinel org policies and a valid auth token.
-const USER_DATA_DIR  = path.resolve(__dirname, '../.playwright-user-data-gemini');
-const CHROME_EXE     = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const EXTENSION_PATH = path.resolve(__dirname, `../${EXTENSION_FOLDER}`);
 
 // Gemini selectors (covers multiple UI versions)
 const GEMINI_INPUT =
@@ -228,9 +224,6 @@ test.beforeAll(async () => {
   console.log('\n┌─────────────────────────────────────────────────┐');
   console.log('│ [GEMINI] STEP 4: Sign in through extension popup │');
   console.log('└─────────────────────────────────────────────────┘');
-
-  const SENTINEL_EMAIL    = 'krishna.c@amazatic.com';
-  const SENTINEL_PASSWORD = 'admin@123';
   let popupPage: Page | null = null;
 
   if (!extensionId) {
@@ -503,7 +496,7 @@ test('[Gemini] 2 - Sentinel intercepts prompt on Gemini (WARN / BLOCK / REDACT /
     if (req.url().includes('sentinel.guardrail.tech')) sentinelApiCalls.push(req.url());
   });
 
-  const results: Array<{ index: number; category: string; expected: string; decision: string; detectedCategory: string; snippet: string; status: string }> = [];
+  const results: Array<{ index: number; category: string; expected: string; decision: string; detectedCategory: string; prompt: string; status: string }> = [];
 
   // Navigate to Gemini once and reuse the same page for all prompts
   await page.goto('https://gemini.google.com/', { waitUntil: 'commit', timeout: 90_000 });
@@ -572,7 +565,7 @@ test('[Gemini] 2 - Sentinel intercepts prompt on Gemini (WARN / BLOCK / REDACT /
 
     if (!submitted) {
       console.log('[GEMINI][Test 2] Could not submit — skipping prompt.');
-      results.push({ index: i + 1, category, expected, decision: 'SKIP', detectedCategory: '', snippet, status: 'SKIP' });
+      results.push({ index: i + 1, category, expected, decision: 'SKIP', detectedCategory: '', prompt, status: 'SKIP' });
       continue;
     }
 
@@ -591,7 +584,7 @@ test('[Gemini] 2 - Sentinel intercepts prompt on Gemini (WARN / BLOCK / REDACT /
     await page.evaluate(() => { (window as any).__sentinel_last_decision = null; }).catch(() => {});
 
     const status = decision === expected ? 'PASS' : 'FAIL';
-    results.push({ index: i + 1, category, expected, decision, detectedCategory, snippet, status });
+    results.push({ index: i + 1, category, expected, decision, detectedCategory, prompt, status });
     console.log(`[GEMINI][Test 2] Prompt ${i + 1} → Decision: ${decision}  Det.Category: ${detectedCategory || '(none)'}  [${status}]`);
 
     if (decision === 'WARN') {
@@ -605,36 +598,78 @@ test('[Gemini] 2 - Sentinel intercepts prompt on Gemini (WARN / BLOCK / REDACT /
   const timestamp = new Date().toLocaleString();
   const reportLines: string[] = [];
 
-  const SEP  = '+------+---------------------------------------------------------+-------------------+----------+----------+----------------------+--------+';
-  const HEAD = '| No   | Prompt                                                  | Category          | Expected | Actual   | Det.Category         | Status |';
-  const fmtRow = (no: string, pr: string, cat: string, exp: string, act: string, detCat: string, st: string) =>
-    `| ${no.padEnd(4)} | ${pr.substring(0, 55).padEnd(55)} | ${cat.padEnd(17)} | ${exp.padEnd(8)} | ${act.padEnd(8)} | ${detCat.padEnd(20)} | ${st.padEnd(6)} |`;
-
-  reportLines.push(`Guardrail Sentinel — Gemini Test Report  [${timestamp}]`);
-  reportLines.push(SEP);
-  reportLines.push(HEAD);
-  reportLines.push(SEP);
-
   const completedResults = results.filter(r => r.decision !== 'SKIP');
-  for (const r of completedResults) {
-    reportLines.push(fmtRow(String(r.index), r.snippet, r.category, r.expected, r.decision, r.detectedCategory, r.status));
-  }
-  reportLines.push(SEP);
-
   const total = completedResults.length;
   const pass  = completedResults.filter(r => r.status === 'PASS').length;
   const fail  = total - pass;
   const pct   = total > 0 ? Math.round((pass / total) * 100) : 0;
+
+  const LINE = '='.repeat(100);
+  const DIV  = '-'.repeat(100);
+
+  // ── Header ──
+  reportLines.push(LINE);
+  reportLines.push(`  Guardrail Sentinel — Gemini Test Report`);
+  reportLines.push(`  Generated : ${timestamp}`);
+  reportLines.push(`  Result    : ${pass} PASS  /  ${fail} FAIL  /  ${total} Total  (${pct}%)`);
+  reportLines.push(LINE);
+  reportLines.push('');
+
+  // ── Summary table ──
+  reportLines.push('SUMMARY');
+  const TSEP  = '+-----+--------------------------------------------------------------+-------------------+----------+----------+----------------------+--------+';
+  const THEAD = '| No  | Prompt                                                       | Category          | Expected | Actual   | Det.Category         | Status |';
+  reportLines.push(TSEP);
+  reportLines.push(THEAD);
+  reportLines.push(TSEP);
+  for (const r of completedResults) {
+    const promptWords = r.prompt.split(' ');
+    const promptLines: string[] = [];
+    let cur = '';
+    for (const word of promptWords) {
+      if (cur.length + word.length + (cur ? 1 : 0) > 60) { promptLines.push(cur); cur = word; }
+      else { cur += (cur ? ' ' : '') + word; }
+    }
+    if (cur) promptLines.push(cur);
+    for (let li = 0; li < promptLines.length; li++) {
+      if (li === 0) {
+        reportLines.push(`| ${String(r.index).padEnd(3)} | ${promptLines[0].padEnd(60)} | ${r.category.padEnd(17)} | ${r.expected.padEnd(8)} | ${r.decision.padEnd(8)} | ${r.detectedCategory.padEnd(20)} | ${r.status.padEnd(6)} |`);
+      } else {
+        reportLines.push(`|     | ${promptLines[li].padEnd(60)} |                   |          |          |                      |        |`);
+      }
+    }
+    reportLines.push(TSEP);
+  }
   reportLines.push(`  Total: ${total}   PASS: ${pass}   FAIL: ${fail}   (${pct}%)`);
   reportLines.push('');
+
+  // ── Details — full prompts ──
+  reportLines.push(LINE);
+  reportLines.push('DETAILS — Full Prompts');
+  reportLines.push(LINE);
+  reportLines.push('');
+  for (const r of completedResults) {
+    reportLines.push(`[${r.index}]  ${r.category}  |  Expected: ${r.expected}  |  Actual: ${r.decision}  |  Detected: ${r.detectedCategory || '(none)'}  |  ${r.status}`);
+    const words = r.prompt.split(' ');
+    let wrapLine = '  ';
+    for (const word of words) {
+      if (wrapLine.length + word.length + 1 > 98) { reportLines.push(wrapLine); wrapLine = '  ' + word; }
+      else { wrapLine += (wrapLine === '  ' ? '' : ' ') + word; }
+    }
+    if (wrapLine.trim()) reportLines.push(wrapLine);
+    reportLines.push(DIV);
+    reportLines.push('');
+  }
 
   const reportText = reportLines.join('\n');
   console.log('\n' + reportText);
 
-  // Save report to test-results/
-  const reportDir  = path.resolve(__dirname, '../test-results');
+  // Save report to reports/ (not test-results/ — Playwright wipes that folder on every run)
+  const reportDir  = path.resolve(__dirname, '../reports');
   if (!fs.existsSync(reportDir)) fs.mkdirSync(reportDir, { recursive: true });
-  const reportFile = path.join(reportDir, `sentinel-gemini-report-${Date.now()}.txt`);
+  const _now = new Date();
+  const fileTs = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}_${String(_now.getHours()).padStart(2,'0')}-${String(_now.getMinutes()).padStart(2,'0')}-${String(_now.getSeconds()).padStart(2,'0')}`;
+  const reportFile = path.join(reportDir, `gemini_${fileTs}.txt`);
   fs.writeFileSync(reportFile, reportText, 'utf8');
   console.log(`[GEMINI][Test 2] Report saved → ${reportFile}`);
   console.log(`[GEMINI][Test 2] Total Sentinel API calls: ${sentinelApiCalls.length}`);
