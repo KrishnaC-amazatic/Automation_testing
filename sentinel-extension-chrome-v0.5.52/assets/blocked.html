@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Blocked — Guardrail Sentinel</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #111827;
+      color: #f3f4f6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 520px;
+      padding: 2.5rem;
+    }
+
+    .shield {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 1.5rem;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shield svg {
+      width: 36px;
+      height: 36px;
+      stroke: #ef4444;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      opacity: 0.6;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #9ca3af;
+    }
+
+    .brand svg {
+      width: 16px;
+      height: 16px;
+      stroke: #14b8a6;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #f9fafb;
+    }
+
+    .message {
+      font-size: 0.95rem;
+      color: #9ca3af;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .blocked-url {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+      font-size: 0.85rem;
+      color: #f87171;
+      word-break: break-all;
+      margin-bottom: 2rem;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, opacity 0.15s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: #14b8a6;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #0d9488;
+    }
+
+    .footer {
+      margin-top: 3rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Guardrail Sentinel
+    </div>
+
+    <div class="shield">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+    </div>
+
+    <h1>Site Blocked</h1>
+    <p class="message">
+      This site has been blocked by your organization's security policy.
+      If you believe this is a mistake, contact your IT administrator.
+    </p>
+
+    <div class="blocked-url" id="blockedUrl"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="history.back()">
+        ← Go Back
+      </button>
+    </div>
+
+    <p class="footer">
+      Protected by Guardrail Sentinel
+    </p>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const url = params.get('url') || 'Unknown';
+    document.getElementById('blockedUrl').textContent = url;
+    document.title = 'Blocked: ' + url + ' — Guardrail Sentinel';
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "sentinel-extension-playwright-poc",
+  "version": "1.0.0",
+  "description": "Playwright automation POC for Guardrail Sentinel Chrome extension",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.0.0",
+    "dotenv": "^17.4.2",
+    "typescript": "^5.4.0"
+  }
+}

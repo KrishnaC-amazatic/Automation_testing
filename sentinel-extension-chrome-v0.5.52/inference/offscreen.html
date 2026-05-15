@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+<head><title>Sentinel ONNX Inference</title></head>
+<body>
+  <!-- This offscreen document hosts ONNX Runtime WASM inference.
+       Service workers can't run WASM with SharedArrayBuffer,
+       so inference happens here and results are messaged back. -->
+  <script src="offscreen.js"></script>
+</body>
+</html>

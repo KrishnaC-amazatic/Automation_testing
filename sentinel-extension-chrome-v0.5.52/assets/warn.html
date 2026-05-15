@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Warning — Guardrail Sentinel</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #111827;
+      color: #f3f4f6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 520px;
+      padding: 2.5rem;
+    }
+
+    .shield {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 1.5rem;
+      border-radius: 50%;
+      background: rgba(245, 158, 11, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shield svg {
+      width: 36px;
+      height: 36px;
+      stroke: #f59e0b;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      opacity: 0.6;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #9ca3af;
+    }
+
+    .brand svg {
+      width: 16px;
+      height: 16px;
+      stroke: #14b8a6;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #f9fafb;
+    }
+
+    .message {
+      font-size: 0.95rem;
+      color: #9ca3af;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .flagged-url {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+      font-size: 0.85rem;
+      color: #fbbf24;
+      word-break: break-all;
+      margin-bottom: 2rem;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, opacity 0.15s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: #14b8a6;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #0d9488;
+    }
+
+    .btn-warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-warning:hover {
+      background: rgba(245, 158, 11, 0.25);
+    }
+
+    .proceed-note {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-top: 1rem;
+    }
+
+    .footer {
+      margin-top: 3rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Guardrail Sentinel
+    </div>
+
+    <div class="shield">
+      <!-- Alert triangle -->
+      <svg viewBox="0 0 24 24">
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </div>
+
+    <h1>Site Flagged</h1>
+    <p class="message">
+      This site has been flagged by your organization's security policy.
+      You may proceed, but your visit will be logged.
+    </p>
+
+    <div class="flagged-url" id="flaggedUrl"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="history.back()">
+        ← Go Back
+      </button>
+      <button class="btn btn-warning" id="proceedBtn">
+        Proceed Anyway →
+      </button>
+    </div>
+
+    <p class="proceed-note">
+      Proceeding will be recorded in your organization's security audit log.
+    </p>
+
+    <p class="footer">
+      Protected by Guardrail Sentinel
+    </p>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const pattern = params.get('url') || '';
+    document.getElementById('flaggedUrl').textContent = pattern || 'Unknown';
+    document.title = 'Warning: ' + pattern + ' — Guardrail Sentinel';
+
+    document.getElementById('proceedBtn').addEventListener('click', async () => {
+      if (!pattern) return;
+
+      // Ask the service worker to temporarily suppress the warn rule for this
+      // pattern so the user can navigate through without an infinite redirect.
+      try {
+        await chrome.runtime.sendMessage({
+          type: 'SENTINEL_SITE_WARN_PROCEED',
+          pattern: pattern,
+        });
+      } catch {
+        // SW messaging failed — proceed anyway, best effort
+      }
+
+      // Brief pause to let the rule removal propagate before navigating
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      // Reconstruct navigable URL from the pattern
+      let target = pattern;
+      if (!target.match(/^https?:\/\//)) {
+        target = 'https://' + target;
+      }
+      // Replace current history entry to avoid back → warn → redirect loop
+      location.replace(target);
+    });
+  </script>
+</body>
+</html>

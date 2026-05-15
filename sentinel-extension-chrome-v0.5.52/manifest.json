@@ -1,0 +1,125 @@
+{
+  "manifest_version": 3,
+  "name": "Guardrail Sentinel",
+  "version": "0.5.52",
+  "description": "AI Interaction Security Platform — protect your organization from AI data risks.",
+  "permissions": [
+    "storage",
+    "alarms",
+    "offscreen",
+    "scripting",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "background": {
+    "service_worker": "worker/sentinel-sw.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://sentinel.guardrail.tech/*"
+      ],
+      "js": [
+        "content/sentinel-auth-bridge.js"
+      ],
+      "run_at": "document_idle",
+      "world": "ISOLATED",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "https://chat.openai.com/*",
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://www.perplexity.ai/*",
+        "https://copilot.microsoft.com/*",
+        "https://sydney.bing.com/*",
+        "https://edgeservices.bing.com/*",
+        "https://www.bing.com/*",
+        "https://v0.dev/*",
+        "https://www.notion.so/*",
+        "https://app.copy.ai/*",
+        "https://www.midjourney.com/*",
+        "https://api.cursor.sh/*",
+        "https://api2.cursor.sh/*",
+        "https://github.com/*",
+        "https://githubnext.com/*"
+      ],
+      "js": [
+        "content/sentinel-bridge.js"
+      ],
+      "run_at": "document_start",
+      "world": "ISOLATED",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "https://chat.openai.com/*",
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://www.perplexity.ai/*",
+        "https://copilot.microsoft.com/*",
+        "https://sydney.bing.com/*",
+        "https://edgeservices.bing.com/*",
+        "https://www.bing.com/*",
+        "https://v0.dev/*",
+        "https://www.notion.so/*",
+        "https://app.copy.ai/*",
+        "https://www.midjourney.com/*",
+        "https://api.cursor.sh/*",
+        "https://api2.cursor.sh/*",
+        "https://github.com/*",
+        "https://githubnext.com/*"
+      ],
+      "js": [
+        "content/sentinel-cs.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/icon-16.png",
+      "32": "assets/icon-32.png",
+      "48": "assets/icon-48.png",
+      "128": "assets/icon-128.png"
+    },
+    "default_title": "Guardrail Sentinel"
+  },
+  "icons": {
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.sentinel.guardrail.tech https://auth.guardrail.tech https://rlmworksstorage38bdcf1aa.blob.core.windows.net"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/*",
+        "wasm/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "externally_connectable": {
+    "matches": [
+      "https://sentinel.guardrail.tech/*"
+    ]
+  }
+}

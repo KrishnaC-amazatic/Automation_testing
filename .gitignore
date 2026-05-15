@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Playwright artifacts
+test-results/
+playwright-report/
+.playwright-user-data/
+.playwright-user-data-claude/
+.playwright-user-data-gemini/
+
+
+# Environment — contains credentials, never commit
+.env
+.venv
+
+# TypeScript build output
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
