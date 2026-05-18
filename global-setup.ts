@@ -13,9 +13,12 @@
 import fs   from 'fs';
 import path from 'path';
 
-const SRC_PROFILE    = path.resolve(__dirname, '.playwright-user-data');
-const DEST_GEMINI    = path.resolve(__dirname, '.playwright-user-data-gemini');
-const DEST_CLAUDE    = path.resolve(__dirname, '.playwright-user-data-claude');
+const SRC_PROFILE         = path.resolve(__dirname, '.playwright-user-data');
+const DEST_GEMINI         = path.resolve(__dirname, '.playwright-user-data-gemini');
+const DEST_CLAUDE         = path.resolve(__dirname, '.playwright-user-data-claude');
+const DEST_COPILOT        = path.resolve(__dirname, '.playwright-user-data-copilot');
+const DEST_DEEPSEEK       = path.resolve(__dirname, '.playwright-user-data-deepseek');
+const DEST_GITHUBCOPILOT  = path.resolve(__dirname, '.playwright-user-data-githubcopilot');
 
 /** Recursively copy src → dest, skipping files/dirs that Chrome locks. */
 function copyDir(src: string, dest: string): void {
@@ -61,6 +64,24 @@ export default async function globalSetup(): Promise<void> {
   console.log(`[global-setup]   dest: ${DEST_CLAUDE}`);
   copyDir(SRC_PROFILE, DEST_CLAUDE);
   console.log('[global-setup] ✓ Claude profile seeded.');
+
+  console.log('[global-setup] Seeding Copilot Chrome profile from ChatGPT profile...');
+  console.log(`[global-setup]   src : ${SRC_PROFILE}`);
+  console.log(`[global-setup]   dest: ${DEST_COPILOT}`);
+  copyDir(SRC_PROFILE, DEST_COPILOT);
+  console.log('[global-setup] ✓ Copilot profile seeded.');
+
+  console.log('[global-setup] Seeding DeepSeek Chrome profile from ChatGPT profile...');
+  console.log(`[global-setup]   src : ${SRC_PROFILE}`);
+  console.log(`[global-setup]   dest: ${DEST_DEEPSEEK}`);
+  copyDir(SRC_PROFILE, DEST_DEEPSEEK);
+  console.log('[global-setup] ✓ DeepSeek profile seeded.');
+
+  console.log('[global-setup] Seeding GitHub Copilot Chrome profile from ChatGPT profile...');
+  console.log(`[global-setup]   src : ${SRC_PROFILE}`);
+  console.log(`[global-setup]   dest: ${DEST_GITHUBCOPILOT}`);
+  copyDir(SRC_PROFILE, DEST_GITHUBCOPILOT);
+  console.log('[global-setup] ✓ GitHub Copilot profile seeded.');
 
   console.log('[global-setup] ✓ All profiles seeded — all workers start with cached Sentinel policies.');
 }

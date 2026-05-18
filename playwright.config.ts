@@ -13,8 +13,8 @@ export default defineConfig({
   testDir: './tests',
   timeout: 120_000,        // 2 min per individual test
   retries: 0,
-  workers: 3,              // ChatGPT, Gemini, and Claude run in parallel.
-                           // global-setup.ts seeds the Gemini and Claude profiles from the ChatGPT profile
+  workers: 6,              // ChatGPT, Gemini, Claude, Copilot, DeepSeek, and GitHub Copilot run in parallel.
+                           // global-setup.ts seeds the Gemini, Claude, Copilot, DeepSeek, and GitHub Copilot profiles from the ChatGPT profile
                            // so all Chrome instances start with cached Sentinel policies & auth token.
 
   // global-setup runs once before any worker starts — seeds the Gemini Chrome profile.
@@ -61,6 +61,45 @@ export default defineConfig({
     {
       name: 'sentinel-claude',
       testMatch: '**/claude-extension.spec.ts',
+      use: {
+        launchOptions: {
+          args: [
+            `--disable-extensions-except=${EXTENSION_PATH}`,
+            `--load-extension=${EXTENSION_PATH}`,
+            '--no-sandbox',
+          ],
+        },
+      },
+    },
+    {
+      name: 'sentinel-copilot',
+      testMatch: '**/copilot-extension.spec.ts',
+      use: {
+        launchOptions: {
+          args: [
+            `--disable-extensions-except=${EXTENSION_PATH}`,
+            `--load-extension=${EXTENSION_PATH}`,
+            '--no-sandbox',
+          ],
+        },
+      },
+    },
+    {
+      name: 'sentinel-deepseek',
+      testMatch: '**/deepseek-extension.spec.ts',
+      use: {
+        launchOptions: {
+          args: [
+            `--disable-extensions-except=${EXTENSION_PATH}`,
+            `--load-extension=${EXTENSION_PATH}`,
+            '--no-sandbox',
+          ],
+        },
+      },
+    },
+    {
+      name: 'sentinel-githubcopilot',
+      testMatch: '**/githubcopilot-extension.spec.ts',
       use: {
         launchOptions: {
           args: [
