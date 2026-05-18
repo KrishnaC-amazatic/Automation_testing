@@ -5,7 +5,12 @@
   "scripts": {
     "test": "npx playwright test",
     "test:headed": "npx playwright test --headed",
-    "test:debug": "npx playwright test --debug"
+    "test:debug": "npx playwright test --debug",
+
+    "test:ui": "npx playwright test --config=playwright.ui.config.ts",
+    "test:ui:headed": "npx playwright test --config=playwright.ui.config.ts --headed",
+    "test:ui:debug": "npx playwright test --config=playwright.ui.config.ts --debug",
+    "test:ui:report": "npx playwright show-report ui-reports/html"
   },
   "devDependencies": {
     "@playwright/test": "^1.44.0",

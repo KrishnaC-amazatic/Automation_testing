@@ -7,11 +7,24 @@ playwright-report/
 .playwright-user-data/
 .playwright-user-data-claude/
 .playwright-user-data-gemini/
+.playwright-user-data-copilot/
+.playwright-user-data-deepseek/
+.playwright-user-data-githubcopilot/
 
+ui-reports/
+ui-test-results/
+reports/
 
 # Environment — contains credentials, never commit
 .env
 .venv
+
+# UI auth state — saved browser session (contains auth tokens)
+.ui-auth-state.json
+
+# Debug screenshots / logs
+*.png
+*.log
 
 # TypeScript build output
 dist/

@@ -6,3 +6,4 @@ export const USER_DATA_DIR = process.env.USER_DATA_DIR || '.playwright-user-data
 export const CHROME_EXE = process.env.CHROME_EXE || '';
 export const SENTINEL_EMAIL = process.env.SENTINEL_EMAIL || '';
 export const SENTINEL_PASSWORD = process.env.SENTINEL_PASSWORD || '';
+export const BASE_URL = (process.env.BASE_URL || process.env.SENTINEL_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
